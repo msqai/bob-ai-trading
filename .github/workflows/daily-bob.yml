@@ -1,0 +1,38 @@
+name: BoB AI Trading — daily post
+
+on:
+  schedule:
+    - cron: "0 21 * * *"   # 21:00 UTC every day
+  workflow_dispatch:        # manual trigger for testing
+
+jobs:
+  fire-bob:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20     # approval window is 10m + headroom
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install "anthropic==0.99.0"
+
+      - name: Run BoB session
+        env:
+          ANTHROPIC_API_KEY:     ${{ secrets.ANTHROPIC_API_KEY }}
+          BOB_AGENT_ID:          ${{ secrets.BOB_AGENT_ID }}
+          BOB_ENVIRONMENT_ID:    ${{ secrets.BOB_ENVIRONMENT_ID }}
+          BOB_MEMORY_STORE_ID:   ${{ secrets.BOB_MEMORY_STORE_ID }}
+          OKX_API_KEY:           ${{ secrets.OKX_API_KEY }}
+          OKX_API_SECRET:        ${{ secrets.OKX_API_SECRET }}
+          OKX_API_PASSPHRASE:    ${{ secrets.OKX_API_PASSPHRASE }}
+          REPLICATE_API_TOKEN:   ${{ secrets.REPLICATE_API_TOKEN }}
+          TELEGRAM_BOT_TOKEN:    ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:      ${{ secrets.TELEGRAM_CHAT_ID }}
+          ZERNIO_API_KEY:        ${{ secrets.ZERNIO_API_KEY }}
+        run: python fire_bob_session.py
