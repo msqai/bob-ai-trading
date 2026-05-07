@@ -16,6 +16,10 @@ Environment variables required:
   TELEGRAM_BOT_TOKEN     — Telegram bot token
   TELEGRAM_CHAT_ID       — your Telegram chat/user ID (for approvals)
   ZERNIO_API_KEY         — Zernio key (set to "placeholder" until wired up)
+
+Optional:
+  DRY_RUN                — when "true", skip post_to_socials and prepend a
+                           DRY RUN banner to the Telegram approval message.
 """
 
 import base64
@@ -41,6 +45,13 @@ def require_env(name: str) -> str:
         print(f"ERROR: required env var {name} is not set", file=sys.stderr)
         sys.exit(1)
     return val
+
+
+def is_dry_run() -> bool:
+    return os.environ.get("DRY_RUN", "").strip().lower() == "true"
+
+
+SOCIAL_PLATFORMS = ["x", "instagram", "tiktok", "telegram"]
 
 
 # ── OKX API helper ────────────────────────────────────────────────────────────
@@ -215,8 +226,16 @@ def send_for_approval(tool_input: dict) -> dict:
     image_url = tool_input["image_url"]
     char_count = len(caption)
 
+    header = "🐻 *BoB AI Trading — Draft Post*"
+    if is_dry_run():
+        platforms = ", ".join(SOCIAL_PLATFORMS)
+        header = (
+            f"🧪 *DRY RUN — would have posted to: {platforms}*\n"
+            f"🐻 *BoB AI Trading — Draft Post*"
+        )
+
     msg = (
-        f"🐻 *BoB AI Trading — Draft Post*\n\n"
+        f"{header}\n\n"
         f"*Caption ({char_count}/240):*\n`{caption}`\n\n"
         f"*Image:* {image_url}\n\n"
         f"Reply *YES* to post, or reply with feedback to revise."
@@ -245,6 +264,10 @@ def send_for_approval(tool_input: dict) -> dict:
 # ── Zernio social posting ─────────────────────────────────────────────────────
 
 def post_to_socials(tool_input: dict) -> dict:
+    if is_dry_run():
+        print("DRY RUN — skipping social distribution")
+        return {"skipped": True, "reason": "DRY_RUN", "platforms": SOCIAL_PLATFORMS}
+
     zernio_key = os.environ.get("ZERNIO_API_KEY", "").strip()
     caption    = tool_input["caption"]
     image_url  = tool_input["image_url"]
@@ -256,7 +279,7 @@ def post_to_socials(tool_input: dict) -> dict:
     payload = json.dumps({
         "caption":   caption,
         "image_url": image_url,
-        "platforms": ["x", "instagram", "tiktok", "telegram"],
+        "platforms": SOCIAL_PLATFORMS,
     }).encode()
     req = urllib.request.Request(
         "https://api.zernio.com/v1/post",

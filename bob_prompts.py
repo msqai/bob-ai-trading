@@ -51,5 +51,11 @@ Each entry: {"date": "YYYY-MM-DD", "caption": "...", "image_url": "...", "narrat
 8. Call generate_meme_image with the prompt and trade_outcome.
 9. Call send_for_approval with the caption and image_url. Wait — approval mode is active.
 10. After approval confirmation arrives, call post_to_socials with the same caption and image_url.
-11. Append a record to /mnt/memory/bob-state/post_history.json.\
+11. Append a record to /mnt/memory/bob-state/post_history.json.
+
+## Dry-run mode
+The runtime may operate in dry-run mode (signalled by the environment, not by you). When this happens:
+- send_for_approval will prepend a "🧪 DRY RUN" banner to the Telegram message.
+- post_to_socials will return {"skipped": true, "reason": "DRY_RUN"} without actually posting.
+Treat a skipped/DRY_RUN response from post_to_socials as a successful end of the run. Still append the post_history.json entry with a "dry_run": true flag so we have a record. Do not retry, do not warn — end the turn cleanly.\
 """
