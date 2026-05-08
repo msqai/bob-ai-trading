@@ -22,11 +22,9 @@ Optional:
                            DRY RUN banner to the Telegram approval message.
 """
 
-import base64
-import hashlib
-import hmac
 import json
 import os
+import ssl
 import sys
 import textwrap
 import time
@@ -54,84 +52,24 @@ def is_dry_run() -> bool:
 SOCIAL_PLATFORMS = ["x", "instagram", "tiktok", "telegram"]
 
 
-# ── OKX API helper ────────────────────────────────────────────────────────────
-
-def _okx_sign(timestamp: str, method: str, path: str, body: str = "") -> dict:
-    secret = require_env("OKX_API_SECRET")
-    passphrase = require_env("OKX_API_PASSPHRASE")
-    prehash = timestamp + method.upper() + path + body
-    sig = base64.b64encode(
-        hmac.new(secret.encode(), prehash.encode(), hashlib.sha256).digest()
-    ).decode()
-    return {
-        "OK-ACCESS-KEY":        require_env("OKX_API_KEY"),
-        "OK-ACCESS-SIGN":       sig,
-        "OK-ACCESS-TIMESTAMP":  timestamp,
-        "OK-ACCESS-PASSPHRASE": passphrase,
-        "Content-Type":         "application/json",
-    }
-
-
-def _okx_get(path: str) -> dict:
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    headers = _okx_sign(ts, "GET", path)
-    url = "https://www.okx.com" + path
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        return json.loads(resp.read())
-
+# ── OKX proxy (Cyprus VPS) ────────────────────────────────────────────────────
 
 def fetch_okx_closed_trades(tool_input: dict) -> dict:
     today = tool_input.get("date") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    empty = {"trades": [], "total_pnl_usdt": 0, "aum_usdt": 0, "copier_count": 0}
 
-    # Closed orders (last 24h)
     try:
-        orders_resp = _okx_get("/api/v5/trade/orders-history?instType=SWAP&state=filled&limit=20")
-        raw_orders  = orders_resp.get("data", [])
+        proxy_url    = os.environ["BOB_PROXY_URL"].rstrip("/")
+        proxy_secret = os.environ["BOB_PROXY_SECRET"]
+        url = f"{proxy_url}/closed-trades?" + urllib.parse.urlencode({"date": today})
+        req = urllib.request.Request(url, headers={"X-Bob-Secret": proxy_secret})
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode    = ssl.CERT_NONE
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+            return json.loads(resp.read())
     except Exception as exc:
-        raw_orders = []
-        print(f"  [OKX orders fetch error: {exc}]")
-
-    trades = []
-    total_pnl = 0.0
-    for o in raw_orders:
-        pnl = float(o.get("pnl", 0))
-        total_pnl += pnl
-        trades.append({
-            "symbol":        o.get("instId", ""),
-            "side":          o.get("side", ""),
-            "pnl_usdt":      round(pnl, 2),
-            "hold_minutes":  None,
-        })
-
-    # Account balance (AUM proxy)
-    aum = 0.0
-    try:
-        bal_resp = _okx_get("/api/v5/account/balance?ccy=USDT")
-        for detail in bal_resp.get("data", [{}])[0].get("details", []):
-            if detail.get("ccy") == "USDT":
-                aum = float(detail.get("eq", 0))
-    except Exception as exc:
-        print(f"  [OKX balance fetch error: {exc}]")
-
-    # Copy-trading stats (lead trader endpoint)
-    copiers = 0
-    try:
-        ct_resp = _okx_get("/api/v5/copytrading/public-lead-traders?instType=SWAP")
-        for trader in ct_resp.get("data", []):
-            if trader.get("leadTraderUid"):
-                copiers = int(trader.get("copyTradingNum", 0))
-                break
-    except Exception as exc:
-        print(f"  [OKX copier count fetch error: {exc}]")
-
-    return {
-        "date":           today,
-        "trades":         trades,
-        "total_pnl_usdt": round(total_pnl, 2),
-        "aum_usdt":       round(aum, 2),
-        "copier_count":   copiers,
-    }
+        return {**empty, "error": str(exc)}
 
 
 # ── RSS news ──────────────────────────────────────────────────────────────────

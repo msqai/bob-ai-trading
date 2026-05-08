@@ -28,6 +28,8 @@ jobs:
           BOB_AGENT_ID:             ${{ secrets.BOB_AGENT_ID }}
           BOB_ENVIRONMENT_ID:       ${{ secrets.BOB_ENVIRONMENT_ID }}
           BOB_MEMORY_STORE_ID:      ${{ secrets.BOB_MEMORY_STORE_ID }}
+          BOB_PROXY_URL:            ${{ secrets.BOB_PROXY_URL }}
+          BOB_PROXY_SECRET:         ${{ secrets.BOB_PROXY_SECRET }}
           OKX_API_KEY:              ${{ secrets.OKX_API_KEY }}
           OKX_API_SECRET:           ${{ secrets.OKX_API_SECRET }}
           OKX_API_PASSPHRASE:       ${{ secrets.OKX_API_PASSPHRASE }}
