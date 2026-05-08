@@ -76,7 +76,10 @@ EVERY post must end with the day's performance metrics. Format:
 
 Rules:
 - Always at the END of the caption (last sentence)
-- Round AUM to nearest $1K (e.g., $847K not $846,732)
+- AUM display rule:
+  - If AUM >= $1000: round to nearest $1K and use K suffix (e.g., $847K, $50K, $1K)
+  - If AUM < $1000: show actual dollar amount with no suffix (e.g., $520, $847, $99)
+  - Never round in a way that inflates the number
 - One decimal place max on % (+2.4% not +2.43%)
 - Never hide or round down losing days — transparency is the brand
 - Pull these numbers from fetch_okx_closed_trades response (total_pnl_usdt, aum_usdt)
