@@ -168,14 +168,23 @@ def fetch_crypto_news(tool_input: dict) -> list:
 
 # ── Replicate image generation ────────────────────────────────────────────────
 
+CANONICAL_BOB_IMAGE = "https://raw.githubusercontent.com/msqai/bob-ai-trading/main/assets/bob_canonical.png"
+
+
 def generate_meme_image(tool_input: dict) -> dict:
     token  = require_env("REPLICATE_API_TOKEN")
     prompt = tool_input["prompt"]
 
-    # Create prediction
+    # Create prediction (image-to-image off the canonical Bob ref)
     payload = json.dumps({
-        "version": "black-forest-labs/flux-schnell",
-        "input":   {"prompt": prompt, "num_outputs": 1, "output_format": "webp"},
+        "version": "black-forest-labs/flux-dev",
+        "input":   {
+            "prompt": prompt,
+            "image": CANONICAL_BOB_IMAGE,
+            "prompt_strength": 0.65,
+            "num_outputs": 1,
+            "output_format": "webp",
+        },
     }).encode()
     req = urllib.request.Request(
         "https://api.replicate.com/v1/predictions",
@@ -188,7 +197,7 @@ def generate_meme_image(tool_input: dict) -> dict:
     pred_id  = pred["id"]
     poll_url = f"https://api.replicate.com/v1/predictions/{pred_id}"
 
-    # Poll until done (Flux Schnell is fast — usually <10s)
+    # Poll until done (Flux Dev typically 20-30s)
     for _ in range(30):
         time.sleep(2)
         req = urllib.request.Request(
