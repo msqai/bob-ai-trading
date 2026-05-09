@@ -26,9 +26,11 @@ TOOLS = [
         "type": "custom",
         "name": "fetch_okx_closed_trades",
         "description": (
-            "Fetch today's closed trading positions from OKX along with current AUM "
-            "(assets under management) and copier count for the copy-trading profile. "
-            "Returns a JSON object with keys: trades (list), total_pnl_usdt (float), "
+            "Fetch trading performance from OKX: 24h closed trades plus 24h and 7d "
+            "PnL aggregates, current AUM, and copier count. "
+            "Returns a JSON object with keys: trades_24h (list of recent fills with "
+            "symbol/side/pnl_usdt), trades_7d_count (int), pnl_24h_usdt (float), "
+            "pnl_7d_usdt (float), pnl_24h_pct (float), pnl_7d_pct (float), "
             "aum_usdt (float), copier_count (int), date (YYYY-MM-DD)."
         ),
         "input_schema": {
