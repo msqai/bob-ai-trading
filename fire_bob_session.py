@@ -303,19 +303,18 @@ def send_for_approval(tool_input: dict) -> dict:
     chat_id   = require_env("TELEGRAM_CHAT_ID")
     caption   = tool_input["caption"]
     image_url = tool_input["image_url"]
-    char_count = len(caption)
 
-    header = "🐻 *BoB AI Trading — Draft Post*"
+    header = "🐻 *BoB AI Trading. Draft Post*"
     if is_dry_run():
         platforms = ", ".join(SOCIAL_PLATFORMS)
         header = (
-            f"🧪 *DRY RUN — would have posted to: {platforms}*\n"
-            f"🐻 *BoB AI Trading — Draft Post*"
+            f"🧪 *DRY RUN. Would have posted to: {platforms}*\n"
+            f"🐻 *BoB AI Trading. Draft Post*"
         )
 
     msg = (
         f"{header}\n\n"
-        f"*Caption ({char_count}/240):*\n{caption}\n\n"
+        f"{caption}\n\n"
         f"Reply *YES* to post, or reply with feedback to revise."
     )
     _tg("sendPhoto", {
