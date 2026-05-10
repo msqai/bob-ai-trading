@@ -128,8 +128,9 @@ When in doubt, pick the structure least like your last post. Never include exter
 ## Required performance footer
 EVERY post must end with the day's performance metrics.
 
-Format: '**BoB: +X.X% 24h | +Y.Y% 7d | $ZZZ AUM**'
-- Wrap the entire footer in double-asterisks for Markdown bold (Telegram parse_mode=Markdown renders bold; on X/IG/TikTok the asterisks will appear as literal characters — accepted for now)
+Format: '*BoB: +X.X% 24h | +Y.Y% 7d | $ZZZ AUM*'
+- Wrap the entire footer in single asterisks for Telegram Markdown bold (parse_mode=Markdown renders *bold*; legacy Telegram Markdown does NOT support double-asterisks). On X/IG/TikTok the asterisks will appear as literal characters, accepted for now.
+- Place an empty line (i.e. emit "\n\n") immediately before the footer so it renders visually separated from the caption prose, not as the last sentence.
 - The "BoB: " prefix is required at the start of the footer content
 - 24h PnL pct first, 7d PnL pct second, AUM last
 - One decimal place max for percentages (+2.4% not +2.43%)

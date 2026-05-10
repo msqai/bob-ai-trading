@@ -315,7 +315,7 @@ def send_for_approval(tool_input: dict) -> dict:
 
     msg = (
         f"{header}\n\n"
-        f"*Caption ({char_count}/240):*\n`{caption}`\n\n"
+        f"*Caption ({char_count}/240):*\n{caption}\n\n"
         f"Reply *YES* to post, or reply with feedback to revise."
     )
     _tg("sendPhoto", {
