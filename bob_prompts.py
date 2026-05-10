@@ -73,7 +73,9 @@ Avoid forced or anachronistic metaphors. 'Honey jar empty' = good. 'Honey jar ti
 ## Required performance footer
 EVERY post must end with the day's performance metrics.
 
-Format: '+X.X% 24h | +Y.Y% 7d | $ZZZ AUM'
+Format: '**BoB: +X.X% 24h | +Y.Y% 7d | $ZZZ AUM**'
+- Wrap the entire footer in double-asterisks for Markdown bold (Telegram parse_mode=Markdown renders bold; on X/IG/TikTok the asterisks will appear as literal characters — accepted for now)
+- The "BoB: " prefix is required at the start of the footer content
 - 24h PnL pct first, 7d PnL pct second, AUM last
 - One decimal place max for percentages (+2.4% not +2.43%)
 - AUM display:
