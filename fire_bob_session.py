@@ -242,7 +242,7 @@ def generate_meme_image(tool_input: dict) -> dict:
         "input":   {
             "prompt": prompt,
             "image": CANONICAL_BOB_IMAGE,
-            "prompt_strength": 0.20,
+            "prompt_strength": 0.65,
             "num_outputs": 1,
             "output_format": "webp",
         },
