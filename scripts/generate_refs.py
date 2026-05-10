@@ -45,18 +45,36 @@ TTI_PREFIX = (
 )
 
 
+import urllib.error
+
+
+def _post_with_429_retry(url, data, headers, max_attempts=5):
+    """POST with exponential backoff on 429 (Replicate rate limit)."""
+    for attempt in range(max_attempts):
+        req = urllib.request.Request(url, data=data, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < max_attempts - 1:
+                retry_after = int(e.headers.get("Retry-After") or 0)
+                wait = max(retry_after, 2 ** (attempt + 3))  # 8, 16, 32, 64
+                print(f"    [429] backing off {wait}s (attempt {attempt+1}/{max_attempts})", flush=True)
+                time.sleep(wait)
+                continue
+            raise
+
+
 def replicate(input_dict):
-    payload = json.dumps({
+    body = json.dumps({
         "version": "black-forest-labs/flux-dev",
         "input":   input_dict,
     }).encode()
-    req = urllib.request.Request(
+    pred = _post_with_429_retry(
         "https://api.replicate.com/v1/predictions",
-        data=payload,
-        headers={"Authorization": f"Token {TOKEN}", "Content-Type": "application/json"},
+        body,
+        {"Authorization": f"Token {TOKEN}", "Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        pred = json.loads(resp.read())
     pid  = pred["id"]
     poll = f"https://api.replicate.com/v1/predictions/{pid}"
     for _ in range(60):
@@ -78,42 +96,52 @@ def download(url, path):
             f.write(resp.read())
 
 
+INTER_CALL_DELAY = 5  # seconds between successive POST /predictions, avoid 429 bursts
+
+
+def _try_pass(slug, pass_num, label, input_dict):
+    """Run one pass and save the output. Swallow per-pass exceptions so a
+    single failure doesn't abort the rest of the batch."""
+    out = f"out/{slug}_pass{pass_num}.png"
+    print(f"  pass{pass_num} ({label})...", flush=True)
+    try:
+        url = replicate(input_dict)
+        download(url, out)
+        print(f"    -> {url}", flush=True)
+    except Exception as exc:
+        print(f"    [FAIL] {exc}", flush=True)
+
+
 def main():
     os.makedirs("out", exist_ok=True)
     for slug, scene in VARIANTS:
         print(f"=== {slug} ===", flush=True)
         scene_prompt = f"{IDENTITY}, {scene}, dark green background, cartoon style"
 
-        print("  pass1 (img2img 0.85)...", flush=True)
-        u1 = replicate({
+        _try_pass(slug, 1, "img2img 0.85", {
             "prompt":          scene_prompt,
             "image":           CANONICAL_BOB_IMAGE,
             "prompt_strength": 0.85,
             "num_outputs":     1,
             "output_format":   "png",
         })
-        download(u1, f"out/{slug}_pass1.png")
-        print(f"    -> {u1}", flush=True)
+        time.sleep(INTER_CALL_DELAY)
 
-        print("  pass2 (img2img 0.92)...", flush=True)
-        u2 = replicate({
+        _try_pass(slug, 2, "img2img 0.92", {
             "prompt":          scene_prompt,
             "image":           CANONICAL_BOB_IMAGE,
             "prompt_strength": 0.92,
             "num_outputs":     1,
             "output_format":   "png",
         })
-        download(u2, f"out/{slug}_pass2.png")
-        print(f"    -> {u2}", flush=True)
+        time.sleep(INTER_CALL_DELAY)
 
-        print("  pass3 (text-to-image fallback)...", flush=True)
-        u3 = replicate({
+        _try_pass(slug, 3, "text-to-image fallback", {
             "prompt":        TTI_PREFIX + scene,
             "num_outputs":   1,
             "output_format": "png",
         })
-        download(u3, f"out/{slug}_pass3.png")
-        print(f"    -> {u3}", flush=True)
+        time.sleep(INTER_CALL_DELAY)
 
     print("DONE")
 
