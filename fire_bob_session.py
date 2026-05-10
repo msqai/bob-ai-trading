@@ -28,10 +28,12 @@ import ssl
 import sys
 import textwrap
 import time
-import urllib.request
+import urllib.error
 import urllib.parse
+import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
 import anthropic
 
@@ -143,28 +145,85 @@ def cluster_headlines(items: list, max_clusters: int = 10) -> list:
     ]
 
 
+AGE_LIMIT_HOURS = 24
+
+
+def _fetch_with_redirects(url: str, max_hops: int = 5) -> bytes:
+    """urllib's default redirect handler historically refused 308 (some Python
+    versions still raise HTTPError on it). Follow 30x manually — covers
+    CoinDesk's permanent 308 to its CDN-hosted feed."""
+    for _ in range(max_hops):
+        req = urllib.request.Request(url, headers={"User-Agent": "BoB-AI-Trading/1.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as e:
+            if e.code in (301, 302, 303, 307, 308):
+                loc = e.headers.get("Location")
+                if not loc:
+                    raise
+                url = urllib.parse.urljoin(url, loc)
+                continue
+            raise
+    raise RuntimeError(f"too many redirects for {url}")
+
+
 def fetch_crypto_news(tool_input: dict) -> dict:
     import re
-    max_items = tool_input.get("max_items_per_feed", 5)
-    articles = []
+    max_items   = tool_input.get("max_items_per_feed", 8)
+    age_limit_h = tool_input.get("age_limit_hours",   AGE_LIMIT_HOURS)
+    now         = datetime.now(timezone.utc)
+
+    fresh: list = []
+    per_source: dict = {}
+
     for source, url in RSS_FEEDS:
+        per_source[source] = 0
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "BoB-AI-Trading/1.0"})
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                raw = resp.read()
+            raw  = _fetch_with_redirects(url)
             root = ET.fromstring(raw)
-            for item in root.findall(".//item")[:max_items]:
-                title   = (item.findtext("title")       or "").strip()
-                summary = re.sub(r"<[^>]+>", "", item.findtext("description") or "")[:200]
-                pub     = (item.findtext("pubDate")     or "").strip()
-                articles.append({"title": title, "summary": summary,
-                                  "source": source, "published_at": pub})
         except Exception as exc:
-            articles.append({"title": f"[fetch error — {source}]",
-                              "summary": str(exc), "source": source, "published_at": ""})
+            print(f"[fetch_crypto_news] {source} fetch error: {exc}", file=sys.stderr)
+            continue
+
+        for item in root.findall(".//item")[:max_items]:
+            title   = (item.findtext("title")       or "").strip()
+            summary = re.sub(r"<[^>]+>", "", item.findtext("description") or "")[:200]
+            pub_str = (item.findtext("pubDate")     or "").strip()
+
+            age_h = None
+            if pub_str:
+                try:
+                    dt = parsedate_to_datetime(pub_str)
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    age_h = (now - dt).total_seconds() / 3600
+                except Exception:
+                    age_h = None
+
+            if age_h is None or age_h > age_limit_h:
+                continue
+
+            fresh.append({
+                "title":        title,
+                "summary":      summary,
+                "source":       source,
+                "published_at": pub_str,
+                "age_hours":    round(age_h, 1),
+            })
+            per_source[source] += 1
+
+    fresh.sort(key=lambda a: a["age_hours"])
+
+    for source, n in per_source.items():
+        if n == 0:
+            print(f"[fetch_crypto_news] WARN: zero fresh items from {source}", file=sys.stderr)
+    if len(fresh) < 5:
+        print(f"[fetch_crypto_news] WARN: only {len(fresh)} fresh items across all sources", file=sys.stderr)
+
     return {
-        "raw_items":       articles,
-        "trending_topics": cluster_headlines(articles),
+        "raw_items":       fresh,
+        "trending_topics": cluster_headlines(fresh),
     }
 
 
