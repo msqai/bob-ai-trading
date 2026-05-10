@@ -24,6 +24,7 @@ Optional:
 
 import json
 import os
+import random
 import ssl
 import sys
 import textwrap
@@ -229,20 +230,40 @@ def fetch_crypto_news(tool_input: dict) -> dict:
 
 # ── Replicate image generation ────────────────────────────────────────────────
 
-CANONICAL_BOB_IMAGE = "https://raw.githubusercontent.com/msqai/bob-ai-trading/main/assets/bob_canonical.png"
+ASSET_BASE = "https://raw.githubusercontent.com/msqai/bob-ai-trading/main/assets"
+CANONICAL_BOB_IMAGE = f"{ASSET_BASE}/bob_canonical.png"
+
+# Mood-variant references. Two per state for visual variety. Keys match the
+# agent's trade_outcome enum exactly. Selector picks one at random per call.
+REFERENCE_MAP = {
+    "win":      ["bob_chill_winning.png",    "bob_smug_winning.png"],
+    "loss":     ["bob_slumped_losing.png",   "bob_defeated_losing.png"],
+    "mixed":    ["bob_hunched_focused.png",  "bob_alert_skeptical.png"],
+    "no_trade": ["bob_asleep_inactive.png",  "bob_worried_volatile.png"],
+}
+
+
+def select_reference(trade_outcome: str) -> str:
+    candidates = REFERENCE_MAP.get(trade_outcome) or [os.path.basename(CANONICAL_BOB_IMAGE)]
+    return f"{ASSET_BASE}/{random.choice(candidates)}"
 
 
 def generate_meme_image(tool_input: dict) -> dict:
-    token  = require_env("REPLICATE_API_TOKEN")
-    prompt = tool_input["prompt"]
+    token         = require_env("REPLICATE_API_TOKEN")
+    prompt        = tool_input["prompt"]
+    trade_outcome = tool_input.get("trade_outcome", "")
+    reference     = select_reference(trade_outcome)
+    print(f"[meme] trade_outcome={trade_outcome!r} reference={reference.rsplit('/',1)[-1]}", file=sys.stderr)
 
-    # Create prediction (image-to-image off the canonical Bob ref)
+    # Create prediction. Mood-variant reference carries the pose; low
+    # prompt_strength keeps the reference dominant so the selected mood
+    # isn't fought by prompt text.
     payload = json.dumps({
         "version": "black-forest-labs/flux-dev",
         "input":   {
             "prompt": prompt,
-            "image": CANONICAL_BOB_IMAGE,
-            "prompt_strength": 0.65,
+            "image": reference,
+            "prompt_strength": 0.30,
             "num_outputs": 1,
             "output_format": "webp",
         },

@@ -82,10 +82,10 @@ TOOLS = [
         "type": "custom",
         "name": "generate_meme_image",
         "description": (
-            "Generate a Bob-the-bear meme image via Replicate Flux Schnell. "
-            "Returns a JSON object with image_url (str) pointing to the generated image. "
-            "Always describe Bob as a cartoon brown grizzly in a navy blazer holding a beer mug. "
-            "The scene should reflect the trade_outcome."
+            "Generate a Bob-the-bear meme image via Replicate Flux. Returns a JSON object "
+            "with image_url (str) pointing to the generated image. The runtime selects a "
+            "mood-variant reference image based on trade_outcome, so the prompt should "
+            "drive scene, mood, and details rather than re-describing Bob's identity."
         ),
         "input_schema": {
             "type": "object",
@@ -93,16 +93,18 @@ TOOLS = [
                 "prompt": {
                     "type": "string",
                     "description": (
-                        "Image generation prompt. Must describe Bob the bear "
-                        "(cartoon brown grizzly, navy blazer, beer mug) and a scene matching "
-                        "the trade outcome. Under 100 words."
+                        "Image generation prompt. Describe a scene that matches the trade "
+                        "outcome and caption mood (lighting, props, on-screen content, "
+                        "facial nuance). Under 100 words."
                     ),
                 },
                 "trade_outcome": {
                     "type": "string",
-                    "enum": ["win", "loss", "mixed"],
+                    "enum": ["win", "loss", "mixed", "no_trade"],
                     "description": (
-                        "'win' = profitable day, 'loss' = down day, 'mixed' = flat or choppy."
+                        "'win' = profitable day, 'loss' = down day, "
+                        "'mixed' = scalped or choppy with a small +/- result, "
+                        "'no_trade' = zero positions opened or closed in the last 24h."
                     ),
                 },
             },
