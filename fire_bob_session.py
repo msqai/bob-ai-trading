@@ -286,8 +286,17 @@ def _tg(method: str, payload: dict) -> dict:
         data=data,
         headers={"Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        return json.loads(resp.read())
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        body = ""
+        try:
+            body = e.read().decode("utf-8", "replace")
+        except Exception:
+            pass
+        print(f"[telegram] {method} HTTP {e.code}: {body}", file=sys.stderr)
+        raise RuntimeError(f"Telegram {method} HTTP {e.code}: {body}") from e
 
 
 def send_for_approval(tool_input: dict) -> dict:
