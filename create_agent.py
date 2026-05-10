@@ -49,9 +49,15 @@ TOOLS = [
         "name": "fetch_crypto_news",
         "description": (
             "Pull the latest crypto headlines from public RSS feeds "
-            "(CoinTelegraph, CoinDesk, Decrypt, The Block). "
-            "Returns a list of articles, each with: title, summary, source, published_at. "
-            "Articles are sorted newest-first."
+            "(CoinTelegraph, CoinDesk, Decrypt, The Block, CryptoSlate, "
+            "Bitcoin Magazine, CoinGape) and return them alongside cross-source "
+            "trending topics. "
+            "Returns a JSON object with: "
+            "raw_items (list of articles, each with title/summary/source/published_at) "
+            "and trending_topics (list of clusters, each with topic/story_count/sample_headlines, "
+            "sorted by story_count desc, only clusters of >=2 stories included). "
+            "Prefer leading with a topic from trending_topics where story_count >= 3; "
+            "fall back to raw_items when no cluster is dominant."
         ),
         "input_schema": {
             "type": "object",

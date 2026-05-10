@@ -75,14 +75,75 @@ def fetch_okx_closed_trades(tool_input: dict) -> dict:
 # ── RSS news ──────────────────────────────────────────────────────────────────
 
 RSS_FEEDS = [
-    ("CoinTelegraph", "https://cointelegraph.com/rss"),
-    ("CoinDesk",      "https://www.coindesk.com/arc/outboundfeeds/rss/"),
-    ("Decrypt",       "https://decrypt.co/feed"),
-    ("TheBlock",      "https://www.theblock.co/rss.xml"),
+    ("CoinTelegraph",   "https://cointelegraph.com/rss"),
+    ("CoinDesk",        "https://www.coindesk.com/arc/outboundfeeds/rss/"),
+    ("Decrypt",         "https://decrypt.co/feed"),
+    ("TheBlock",        "https://www.theblock.co/rss.xml"),
+    ("CryptoSlate",     "https://cryptoslate.com/feed/"),
+    ("BitcoinMagazine", "https://bitcoinmagazine.com/.rss/full/"),
+    ("CoinGape",        "https://coingape.com/feed/"),
 ]
 
+# Drop common English + crypto-generic words from keyword extraction so clusters
+# form around meaningful topics (tickers, named entities, project names) rather
+# than filler.
+_STOPWORDS = {
+    "the","a","an","and","or","but","of","to","in","on","for","with","at","by",
+    "from","as","is","are","was","were","be","been","being","this","that","these",
+    "those","it","its","up","down","over","under","into","out","new","now","said",
+    "after","before","amid","plus","via","says","could","will","would","may","might",
+    "has","have","had","not","no","yes","more","less","than","then","just","about",
+    "vs","among","across","first","second","top","best","worst","big","small",
+    "crypto","cryptocurrency","cryptocurrencies","price","prices","market","markets",
+    "news","report","update","analysis","today","week","month","year","amid","amid",
+}
 
-def fetch_crypto_news(tool_input: dict) -> list:
+
+def _keywords(title: str) -> list[str]:
+    import re
+    words = re.findall(r"[A-Za-z0-9$]{2,}", title)
+    return [w for w in (w.lower() for w in words) if w not in _STOPWORDS and len(w) > 2]
+
+
+def cluster_headlines(items: list, max_clusters: int = 10) -> list:
+    """Group items by shared top keywords. Lightweight — not NLP-grade.
+
+    Approach: count keyword frequency across all items, then for each item pick
+    its rarest-but-still-shared keyword as its cluster label. Two items end up
+    in the same cluster when they share that anchor keyword. Picking the rarer
+    shared keyword surfaces specific stories ("clarity_act", "trump_media")
+    instead of collapsing everything under generic anchors like "bitcoin".
+    """
+    from collections import Counter, defaultdict
+    if not items:
+        return []
+    df = Counter()  # document frequency per keyword
+    item_kws = []
+    for it in items:
+        kws = set(_keywords(it.get("title", "")))
+        item_kws.append(kws)
+        df.update(kws)
+    # Anchor = rarest-but-still-shared keyword (df>=2). Tie-break by length desc (prefer more specific tokens).
+    clusters: dict = defaultdict(list)
+    for it, kws in zip(items, item_kws):
+        shared = [k for k in kws if df[k] >= 2]
+        if not shared:
+            continue
+        anchor = min(shared, key=lambda k: (df[k], -len(k)))
+        clusters[anchor].append(it)
+    ordered = sorted(clusters.items(), key=lambda kv: -len(kv[1]))[:max_clusters]
+    return [
+        {
+            "topic": topic,
+            "story_count": len(group),
+            "sample_headlines": [g.get("title", "") for g in group[:3]],
+        }
+        for topic, group in ordered
+        if len(group) >= 2
+    ]
+
+
+def fetch_crypto_news(tool_input: dict) -> dict:
     import re
     max_items = tool_input.get("max_items_per_feed", 5)
     articles = []
@@ -101,7 +162,10 @@ def fetch_crypto_news(tool_input: dict) -> list:
         except Exception as exc:
             articles.append({"title": f"[fetch error — {source}]",
                               "summary": str(exc), "source": source, "published_at": ""})
-    return articles
+    return {
+        "raw_items":       articles,
+        "trending_topics": cluster_headlines(articles),
+    }
 
 
 # ── Replicate image generation ────────────────────────────────────────────────
