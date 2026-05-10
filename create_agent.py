@@ -52,12 +52,17 @@ TOOLS = [
             "(CoinTelegraph, CoinDesk, Decrypt, The Block, CryptoSlate, "
             "Bitcoin Magazine, CoinGape) and return them alongside cross-source "
             "trending topics. "
+            "Items are pre-filtered to <24h old and sorted newest-first. "
             "Returns a JSON object with: "
-            "raw_items (list of articles, each with title/summary/source/published_at) "
-            "and trending_topics (list of clusters, each with topic/story_count/sample_headlines, "
-            "sorted by story_count desc, only clusters of >=2 stories included). "
+            "raw_items (list of fresh articles, each with title/summary/source/"
+            "published_at/age_hours — age_hours is a float, hours since publication) "
+            "and trending_topics (list of clusters, each with topic/story_count/"
+            "sample_headlines, sorted by story_count desc, only clusters of >=2 "
+            "stories included, computed over fresh items only). "
             "Prefer leading with a topic from trending_topics where story_count >= 3; "
-            "fall back to raw_items when no cluster is dominant."
+            "fall back to raw_items when no cluster is dominant. "
+            "Use age_hours to enforce the <6h freshness gate when quoting any "
+            "external market figure from a headline (per the 'Specific numbers' rules)."
         ),
         "input_schema": {
             "type": "object",
