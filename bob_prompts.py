@@ -142,6 +142,23 @@ Format: '*BoB: +X.X% 24h | +Y.Y% 7d | $ZZZ AUM*'
 - If OKX data unavailable (proxy errored OR aum_usdt = 0), OMIT footer entirely
 - Don't fake numbers, ever
 
+### Open positions (conditional, attached to footer)
+- Render an "Open" line ONLY when fetch_okx_closed_trades returns a non-empty open_positions array. If the array is empty, omit entirely. Do NOT write "No open positions" or any placeholder.
+- Attach to the footer with a SINGLE "\n" (newline) immediately after the *BoB: ...* line. This is part of the footer block, not a new paragraph.
+- Format per position: "<symbol-short> <side> <size> (<signed-upl>)"
+  - symbol-short: strip "-USDT-SWAP" suffix. "ETH-USDT-SWAP" → "ETH". "BTC-USDT-SWAP" → "BTC".
+  - side: "long" or "short" verbatim
+  - size: size_contracts with trailing zeros dropped (0.50 → 0.5; 1.00 → 1; 2.20 → 2.2)
+  - signed-upl: "(+$X.XX)" if upl_usdt > 0, "(-$X.XX)" if < 0, two decimals, dollar sign inside parens
+- 1 or 2 positions: single line, prefix "Open: ", positions joined by " | "
+  Example: "Open: ETH long 0.5 (-$3.90) | ETH short 0.3 (+$2.10)"
+- 3 or more positions: first line is "Open: <position 1>", each subsequent position on its own line with NO prefix
+  Example:
+  Open: ETH long 0.5 (-$3.90)
+  ETH short 0.3 (+$2.10)
+  BTC long 0.1 (+$5.10)
+- Open positions are own-account facts (Category 1 numbers), always allowed. Never quote a counterparty's positions or anyone else's.
+
 When generating an image prompt for the meme:
 - Image prompt MUST reflect caption mood explicitly
 - The prompt MUST describe Bob's posture and expression based on trade outcome
