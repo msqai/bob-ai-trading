@@ -42,29 +42,45 @@ STYLE_ANCHOR = "cartoon illustration style, dark green background"
 
 VARIANTS = [
     ("bob_chill_winning",
-     "relaxed satisfied smile, beer raised at moderate height, leaning back in chair, "
-     "laptop on desk showing a green up-trending chart, calm winning vibe"),
+     "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
+     "sitting in a chair leaning back, relaxed satisfied smile, holding beer mug raised at "
+     "moderate height, laptop on desk showing a green up-trending chart, full upper-body shot, "
+     "dark green background, cartoon illustration style"),
     ("bob_smug_winning",
-     "confident smirk, beer raised high triumphantly, leaning forward at desk, "
-     "laptop showing a strong green up-trend chart, victorious posture"),
+     "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
+     "leaning forward at desk with confident smirk, beer mug raised high triumphantly, "
+     "laptop on desk showing strong green up-trend chart, full upper-body shot, "
+     "dark green background, cartoon illustration style"),
     ("bob_slumped_losing",
-     "head resting on paw, slumped forward over desk, beer mug sitting untouched on desk, "
-     "laptop showing a red down-trending chart, defeated"),
+     "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
+     "slumped over desk with head resting on paw, defeated expression, beer mug sitting "
+     "untouched on desk, laptop showing red downward chart, full upper-body shot, "
+     "dark green background, cartoon illustration style"),
     ("bob_defeated_losing",
-     "looking away from laptop screen, beer mug empty and tipped on its side, "
-     "paws limp on desk, laptop showing a red downward arrow, exhausted"),
+     "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
+     "looking away from laptop, paws limp on desk, beer mug empty and tipped on its side, "
+     "laptop showing red downward arrow chart, full upper-body shot, "
+     "dark green background, cartoon illustration style"),
     ("bob_hunched_focused",
-     "leaning forward intently at desk, narrow scrutinizing eyes, beer mug pushed to the side, "
-     "laptop showing a mixed candlestick chart, focused"),
+     "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
+     "leaning forward intently with narrow scrutinizing eyes, paws on desk near laptop, "
+     "beer mug to the side, laptop showing mixed candle chart, full upper-body shot, "
+     "dark green background, cartoon illustration style"),
     ("bob_alert_skeptical",
-     "sitting upright at desk, raised eyebrow, paw on chin in thought, "
-     "laptop showing a volatile chart, skeptical"),
+     "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
+     "sitting upright with raised eyebrow, paw on chin in thoughtful pose, beer mug on desk, "
+     "laptop showing volatile choppy chart, full upper-body shot, "
+     "dark green background, cartoon illustration style"),
     ("bob_asleep_inactive",
-     "eyes closed, head resting in paw, beer mug full and untouched on desk, "
-     "laptop screen dim and unused, peaceful nap"),
+     "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
+     "eyes closed with head resting on paw, beer mug full and untouched on desk, "
+     "laptop screen dim or showing flat line, full upper-body shot, "
+     "dark green background, cartoon illustration style"),
     ("bob_worried_volatile",
-     "eyes wide open, paws slightly raised in concern, beer mug pushed aside, "
-     "laptop showing chaotic price action, alarmed"),
+     "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
+     "eyes wide with concern, both paws slightly raised in alarm, beer mug pushed aside, "
+     "laptop showing chaotic spiky price action, full upper-body shot, "
+     "dark green background, cartoon illustration style"),
 ]
 
 INTER_CALL_DELAY = 5  # seconds between successive POST /predictions to avoid 429 bursts
@@ -128,11 +144,8 @@ def main():
     out_dir = os.environ.get("OUT_DIR", "assets")
     os.makedirs(out_dir, exist_ok=True)
 
-    for slug, scene in VARIANTS:
+    for slug, prompt in VARIANTS:
         print(f"=== {slug} ===", flush=True)
-        prompt = (
-            f"Bob the brown grizzly bear, {scene}, {STYLE_ANCHOR}"
-        )
         print(f"  prompt: {prompt}", flush=True)
         try:
             url = replicate_predict({
