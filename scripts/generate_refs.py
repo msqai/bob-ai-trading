@@ -43,44 +43,62 @@ STYLE_ANCHOR = "cartoon illustration style, dark green background"
 VARIANTS = [
     ("bob_chill_winning",
      "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
-     "sitting in a chair leaning back, relaxed satisfied smile, holding beer mug raised at "
-     "moderate height, laptop on desk showing a green up-trending chart, full upper-body shot, "
-     "dark green background, cartoon illustration style"),
+     "sitting in a chair leaning back with a relaxed satisfied smile, holding a beer mug "
+     "raised at moderate height in his right paw, ONE laptop on the desk in front of him "
+     "with the screen facing the viewer at a 3/4 angle clearly displaying a green "
+     "up-trending stock chart ON the screen, full upper-body shot, dark green background, "
+     "realistic painterly cartoon illustration style with detailed fur texture and soft "
+     "shading, no second monitor, no tablet"),
     ("bob_smug_winning",
      "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
-     "leaning forward at desk with confident smirk, beer mug raised high triumphantly, "
-     "laptop on desk showing strong green up-trend chart, full upper-body shot, "
-     "dark green background, cartoon illustration style"),
+     "leaning forward at desk with confident smirk, beer mug raised high triumphantly in "
+     "his right paw, ONE laptop on the desk with screen facing the viewer at a 3/4 angle "
+     "clearly displaying a strong green up-trending stock chart ON the screen, full "
+     "upper-body shot, dark green background, realistic painterly cartoon illustration "
+     "style with detailed fur texture and soft shading, no second monitor, no tablet"),
     ("bob_slumped_losing",
      "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
-     "slumped over desk with head resting on paw, defeated expression, beer mug sitting "
-     "untouched on desk, laptop showing red downward chart, full upper-body shot, "
-     "dark green background, cartoon illustration style"),
+     "slumped over the desk with head resting on his paw, defeated expression, beer mug "
+     "sitting untouched on the desk, ONE laptop in front of him with screen facing the "
+     "viewer at a 3/4 angle clearly displaying a red downward stock chart ON the screen, "
+     "full upper-body shot, dark green background, realistic painterly cartoon illustration "
+     "style with detailed fur texture and soft shading, no second monitor, no tablet"),
     ("bob_defeated_losing",
      "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
-     "looking away from laptop, paws limp on desk, beer mug empty and tipped on its side, "
-     "laptop showing red downward arrow chart, full upper-body shot, "
-     "dark green background, cartoon illustration style"),
+     "looking away from the laptop with a defeated expression, paws limp on desk, beer mug "
+     "empty and tipped on its side, ONE laptop on the desk with screen facing the viewer at "
+     "a 3/4 angle clearly displaying a red downward arrow chart ON the screen, full "
+     "upper-body shot, dark green background, realistic painterly cartoon illustration "
+     "style with detailed fur texture and soft shading, no second monitor, no tablet"),
     ("bob_hunched_focused",
      "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
-     "leaning forward intently with narrow scrutinizing eyes, paws on desk near laptop, "
-     "beer mug to the side, laptop showing mixed candle chart, full upper-body shot, "
-     "dark green background, cartoon illustration style"),
+     "leaning forward intently with narrow scrutinizing eyes, paws on the desk near the "
+     "laptop, beer mug to one side, ONE laptop on the desk with screen facing the viewer "
+     "at a 3/4 angle clearly displaying a mixed candlestick chart with red and green "
+     "candles ON the screen, full upper-body shot, dark green background, realistic "
+     "painterly cartoon illustration style with detailed fur texture and soft shading, "
+     "no second monitor, no tablet"),
     ("bob_alert_skeptical",
      "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
-     "sitting upright with raised eyebrow, paw on chin in thoughtful pose, beer mug on desk, "
-     "laptop showing volatile choppy chart, full upper-body shot, "
-     "dark green background, cartoon illustration style"),
+     "sitting upright with raised eyebrow and paw on chin in thoughtful pose, beer mug on "
+     "the desk, ONE laptop in front of him with screen facing the viewer at a 3/4 angle "
+     "clearly displaying a volatile choppy stock chart ON the screen, full upper-body shot, "
+     "dark green background, realistic painterly cartoon illustration style with detailed "
+     "fur texture and soft shading, no second monitor, no tablet"),
     ("bob_asleep_inactive",
      "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
-     "eyes closed with head resting on paw, beer mug full and untouched on desk, "
-     "laptop screen dim or showing flat line, full upper-body shot, "
-     "dark green background, cartoon illustration style"),
+     "eyes closed with head resting on his paw, beer mug full and untouched on the desk, "
+     "ONE laptop on the desk with screen facing the viewer at a 3/4 angle clearly "
+     "displaying a flat horizontal line stock chart ON the screen, full upper-body shot, "
+     "dark green background, realistic painterly cartoon illustration style with detailed "
+     "fur texture and soft shading, no second monitor, no tablet"),
     ("bob_worried_volatile",
      "Bob the brown grizzly bear wearing a navy blue blazer over a white button-up shirt, "
-     "eyes wide with concern, both paws slightly raised in alarm, beer mug pushed aside, "
-     "laptop showing chaotic spiky price action, full upper-body shot, "
-     "dark green background, cartoon illustration style"),
+     "eyes wide with concern, both paws slightly raised in alarm, beer mug pushed aside on "
+     "the desk, ONE laptop in front of him with screen facing the viewer at a 3/4 angle "
+     "clearly displaying a chaotic spiky stock chart ON the screen, full upper-body shot, "
+     "dark green background, realistic painterly cartoon illustration style with detailed "
+     "fur texture and soft shading, no second monitor, no tablet"),
 ]
 
 INTER_CALL_DELAY = 5  # seconds between successive POST /predictions to avoid 429 bursts
