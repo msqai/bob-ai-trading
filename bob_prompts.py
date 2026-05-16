@@ -270,8 +270,8 @@ Each entry: {"date": "YYYY-MM-DD", "caption": "...", "image_url": "...", "narrat
 6. Write a caption in Bob's voice — body under 210 chars, ending with the required performance footer (see above) so the total stays under 240. Tie the trades to the narrative. No URLs. Numbers must follow the "Specific numbers — strict rules" section: own performance figures always allowed, external market numbers (BTC price, ETF amounts, etc.) forbidden unless they pass all three tests (exact-in-headline, <6h old, current reality not speculation).
 7. Write an image prompt for Bob the bear (<100 words).
 8. Call generate_meme_image with the prompt and trade_outcome.
-9. Call send_for_approval with the caption and image_url. Wait — approval mode is active.
-10. After approval confirmation arrives, call post_to_socials with the same caption and image_url.
+9. Call send_for_approval with the caption and image_url. Wait — approval mode is active. You may revise and re-submit at most TWICE after a rejection (3 send_for_approval calls total per run). After the third rejection, STOP. Do not call send_for_approval again. Append a record to /mnt/memory/bob-state/post_history.json with "dry_run": true and "max_revisions_reached": true, then end the turn cleanly.
+10. After approval confirmation arrives, call post_to_socials with the same caption and image_url. If max revisions was reached in step 9, skip this step entirely.
 11. Append a record to /mnt/memory/bob-state/post_history.json.
 
 ## Dry-run mode

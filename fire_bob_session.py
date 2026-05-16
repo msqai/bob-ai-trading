@@ -299,6 +299,9 @@ def generate_meme_image(tool_input: dict) -> dict:
 
 # ── Telegram approval ─────────────────────────────────────────────────────────
 
+_approval_call_count = 0
+
+
 def _tg(method: str, payload: dict) -> dict:
     token = require_env("TELEGRAM_BOT_TOKEN")
     data  = json.dumps(payload).encode()
@@ -321,6 +324,16 @@ def _tg(method: str, payload: dict) -> dict:
 
 
 def send_for_approval(tool_input: dict) -> dict:
+    global _approval_call_count
+    _approval_call_count += 1
+    if _approval_call_count > 3:
+        print("[approval] MAX REVISIONS REACHED, refusing further calls", file=sys.stderr)
+        return {
+            "approved": False,
+            "feedback": "MAX_REVISIONS_REACHED: refusing further send_for_approval calls",
+            "max_revisions_reached": True,
+        }
+
     chat_id   = require_env("TELEGRAM_CHAT_ID")
     caption   = tool_input["caption"]
     image_url = tool_input["image_url"]
